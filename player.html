@@ -30,6 +30,12 @@ let lastStart = null;
 // ===== 倍速変更 =====
 function setRate(r) {
     v.playbackRate = r;
+    
+    // ✅ 再生してなければ再生
+    if (v.paused) {
+        v.play();
+    }
+
     sendLog("RateChange");
 }
 
