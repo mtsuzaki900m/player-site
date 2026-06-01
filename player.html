@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<video id="v" controls width="800">
+</video>
+
+<div>
+<button onclick="setRate(1)">1x</button>
+<button onclick="setRate(1.5)">1.5x</button>
+<button onclick="setRate(2)">2x</button>
+</div>
+
+<script>
+// ===== URLパラメータ取得 =====
+const params = new URLSearchParams(window.location.search);
+const user = params.get("user");
+const videoUrl = params.get("video");
+
+// ===== 動画設定 =====
+const v = document.getElementById("v");
+v.src = videoUrl;
+
+// ===== 状態管理 =====
+let totalWatch = 0;
+let lastStart = null;
+
+// ===== 倍速変更 =====
+function setRate(r) {
+    v.playbackRate = r;
+    sendLog("RateChange");
+}
+
+// ===== イベント =====
+v.onplay = () => {
+    lastStart = Date.now();
+    sendLog("Play");
+};
+
+v.onpause = () => {
+    accumulate();
+    sendLog("Pause");
+};
+
+v.onended = () => {
+    accumulate();
+    sendLog("End");
+};
+
+// ===== 視聴時間加算 =====
+function accumulate() {
+    if (lastStart) {
+        totalWatch += (Date.now() - lastStart) / 1000;
+        lastStart = null;
+    }
+}
+
+// ===== ログ送信 =====
+function sendLog(evt) {
+    fetch("<<<ここにPowerAutomateのURL>>>", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            user: user,
+            event: evt,
+            video: videoUrl,
+            time: v.currentTime,
+            rate: v.playbackRate,
+            timestamp: new Date().toISOString(),
+            total: totalWatch
+        })
+    });
+}
+</script>
+
+</body>
+</html>
